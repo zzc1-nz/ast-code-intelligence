@@ -1,0 +1,29 @@
+[project]
+name = "codegraph"
+version = "0.1.0"
+description = "AST-driven local code intelligence engine (Tree-sitter + SQLite knowledge graph + local LLM)"
+requires-python = ">=3.11"
+dependencies = [
+    "tree-sitter>=0.25",
+    "tree-sitter-python>=0.23",
+    "tree-sitter-rust>=0.23",
+    "tree-sitter-javascript>=0.23",
+    "tree-sitter-typescript>=0.23",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "typer>=0.12",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "rich>=13.7",
+    "jinja2>=3.1",
+]
+
+[project.scripts]
+codegraph = "codegraph.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codegraph"]

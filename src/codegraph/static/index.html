@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codegraph — AST-driven code intelligence</title>
+<!-- Fully offline dashboard: no CDN, no external fonts, no third-party JS. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d1117'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2358a6ff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%233fb950'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>codegraph</h1>
+    <span class="sub">AST-driven local code intelligence · Tree-sitter → SQLite → Ollama</span>
+  </div>
+  <div class="meta">
+    <input id="repo-input" type="text" size="34" spellcheck="false"
+           placeholder="repo path (blank = server default)" title="Press Enter to switch repository">
+    <span class="pill" id="repo-pill">loading…</span>
+    <span class="pill" id="live-pill">…</span>
+    <span id="err"></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= KPI row ================= -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- ================= 1. call graph ================= -->
+  <section class="card c12" id="graph-card">
+    <h2>Call graph <span class="hint" id="graph-status">loading…</span></h2>
+    <div class="graph-toolbar">
+      <input id="trace-symbol" type="text" value="run" spellcheck="false"
+             placeholder="symbol to trace, e.g. main / search / run">
+      <button id="trace-btn" class="primary">Trace</button>
+      <label>direction
+        <select id="trace-dir">
+          <option value="both" selected>both</option>
+          <option value="out">out (callees)</option>
+          <option value="in">in (callers)</option>
+        </select>
+      </label>
+      <label>depth
+        <select id="trace-depth">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+          <option value="4">4</option>
+        </select>
+      </label>
+      <button id="relayout-btn">Re-layout</button>
+    </div>
+    <div class="controls" style="margin-bottom:10px">
+      <span class="k" style="font-size:11px">quick pick:</span>
+      <button data-symbol="run">run</button>
+      <button data-symbol="main">main</button>
+      <button data-symbol="build">build</button>
+      <button data-symbol="grep">grep</button>
+      <button data-symbol="config">config</button>
+      <button data-symbol="searcher">searcher</button>
+    </div>
+    <svg id="graph-svg" role="img" aria-label="force-directed call graph"></svg>
+    <div class="legend graph-legend">
+      <span class="lg"><i style="background:#58a6ff"></i>function</span>
+      <span class="lg"><i style="background:#3fb950"></i>method</span>
+      <span class="lg"><i style="background:#bc8cff"></i>struct / class</span>
+      <span class="lg"><i style="background:#79c0ff"></i>impl</span>
+      <span class="lg"><i style="background:#d29922"></i>enum</span>
+      <span class="lg"><i style="background:#8b949e"></i>module / other</span>
+      <span class="lg"><i style="background:#0d1117;border:1px dashed #f85149"></i>unresolved call target</span>
+      <span class="lg" style="margin-left:auto">click a node to re-trace it</span>
+    </div>
+    <pre class="json" id="trace-json" style="display:none"></pre>
+  </section>
+
+  <!-- ================= 2. token trend ================= -->
+  <section class="card c8">
+    <h2>Token consumption over runs
+      <span class="hint">
+        <label style="text-transform:none;letter-spacing:0;color:var(--muted)">
+          <input id="trend-avoided" type="checkbox" style="vertical-align:-1px"> show avoided
+        </label>
+      </span>
+    </h2>
+    <div class="chart" id="trend-svg-host"></div>
+    <div class="legend" id="trend-legend"></div>
+  </section>
+
+  <!-- ================= 3. symbol kinds donut ================= -->
+  <section class="card c4">
+    <h2>Symbol kinds <span class="hint" id="donut-hint">by_kind</span></h2>
+    <div class="chart" id="donut-host"></div>
+    <div class="legend legend-grid" id="donut-legend"></div>
+  </section>
+
+  <!-- ================= 4. resolution strategies ================= -->
+  <section class="card c6">
+    <h2>Edge resolution strategies <span class="hint" id="resolution-hint"></span></h2>
+    <div class="bars" id="resolution-bars"></div>
+    <div class="legend">
+      <span class="lg"><i style="background:linear-gradient(90deg,#1f6feb,#58a6ff)"></i>resolved (edges.via)</span>
+      <span class="lg"><i style="background:#3d444d"></i>unresolved (dynamic / external)</span>
+    </div>
+  </section>
+
+  <!-- ================= edge composition ================= -->
+  <section class="card c3">
+    <h2>Graph composition</h2>
+    <div class="rows" id="edge-rows"></div>
+  </section>
+
+  <!-- ================= token summary ================= -->
+  <section class="card c3">
+    <h2>Token ledger</h2>
+    <div class="rows" id="token-summary"></div>
+  </section>
+
+  <!-- ================= phase table ================= -->
+  <section class="card c12">
+    <h2>Token accounting by phase <span class="hint">llm_calls · single source of truth</span></h2>
+    <div id="phase-table"></div>
+  </section>
+
+  <!-- ================= runs ================= -->
+  <section class="card c12">
+    <h2>Analysis runs <span class="hint">/api/runs</span></h2>
+    <div id="runs-table"></div>
+  </section>
+
+  <!-- ================= search ================= -->
+  <section class="card c12">
+    <h2>Symbol search <span class="hint">SQLite FTS5</span></h2>
+    <div class="controls" style="margin-bottom:10px">
+      <input id="search-input" type="text" spellcheck="false"
+             placeholder="search symbols — e.g. main, searcher, glob, args …">
+      <button id="search-btn" class="primary">Search</button>
+    </div>
+    <div id="search-results"></div>
+  </section>
+
+  <!-- ================= actions ================= -->
+  <section class="card c12">
+    <h2>Trigger pipeline <span class="hint">POST /api/index · /api/summarize · /api/analyze · /api/guide</span></h2>
+    <div class="controls">
+      <button data-action="/api/index" data-body="{}">Re-index (incremental)</button>
+      <button data-action="/api/summarize" data-body='{"limit":5}'>Summarize 5 files</button>
+      <button data-action="/api/analyze" data-body="{}">Architecture analysis</button>
+      <button data-action="/api/guide" data-body="{}">Developer guide</button>
+    </div>
+    <pre class="json" id="action-output"></pre>
+  </section>
+
+  <!-- ================= files ================= -->
+  <section class="card c12">
+    <h2>Indexed files <span class="hint">/api/files · first 400 rows</span></h2>
+    <div id="files-table"></div>
+  </section>
+
+</main>
+
+<footer>
+  codegraph dashboard · fully offline (no CDN, no external requests) ·
+  auto-refresh every <code>15s</code>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

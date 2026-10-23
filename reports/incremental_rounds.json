@@ -1,0 +1,95 @@
+{
+  "baseline_tokens": 360370,
+  "rounds": [
+    {
+      "round": 1,
+      "changed": [
+        "crates/cli/src/hostname.rs",
+        "crates/core/flags/config.rs",
+        "crates/regex/src/literal.rs"
+      ],
+      "closure": 3,
+      "indexed": 3,
+      "tokens": 9779,
+      "in": 8809,
+      "out": 970,
+      "called": 3,
+      "cached": 0,
+      "hit_rate": 0.0,
+      "elapsed": 86.00007720000212,
+      "run_id": "incremental-20261023-161246-c5598a"
+    },
+    {
+      "round": 2,
+      "changed": [
+        "crates/core/flags/complete/powershell.rs",
+        "crates/core/flags/defs.rs",
+        "crates/searcher/src/searcher/glue.rs"
+      ],
+      "closure": 3,
+      "indexed": 3,
+      "tokens": 13021,
+      "in": 11538,
+      "out": 1483,
+      "called": 3,
+      "cached": 0,
+      "hit_rate": 0.0,
+      "elapsed": 115.93450429999939,
+      "run_id": "incremental-20261023-161414-31ab88"
+    },
+    {
+      "round": 3,
+      "changed": [
+        "crates/cli/src/hostname.rs",
+        "crates/cli/src/hostname.rs",
+        "crates/core/flags/complete/fish.rs"
+      ],
+      "closure": 2,
+      "indexed": 2,
+      "tokens": 3021,
+      "in": 2855,
+      "out": 166,
+      "called": 2,
+      "cached": 0,
+      "hit_rate": 0.0,
+      "elapsed": 20.816115499997977,
+      "run_id": "incremental-20261023-161611-aeb7d1"
+    },
+    {
+      "round": 4,
+      "changed": [
+        "crates/cli/src/hostname.rs",
+        "crates/printer/src/hyperlink/aliases.rs",
+        "crates/printer/src/path.rs"
+      ],
+      "closure": 3,
+      "indexed": 3,
+      "tokens": 6170,
+      "in": 5832,
+      "out": 338,
+      "called": 3,
+      "cached": 0,
+      "hit_rate": 0.0,
+      "elapsed": 32.87639409999974,
+      "run_id": "incremental-20261023-161633-3d7b47"
+    },
+    {
+      "round": 5,
+      "changed": [
+        "crates/core/flags/lowargs.rs",
+        "crates/ignore/tests/gitignore_matched_path_or_any_parents_tests.rs",
+        "crates/printer/src/json.rs"
+      ],
+      "closure": 3,
+      "indexed": 3,
+      "tokens": 14133,
+      "in": 13123,
+      "out": 1010,
+      "called": 3,
+      "cached": 0,
+      "hit_rate": 0.0,
+      "elapsed": 126.62660790000155,
+      "run_id": "incremental-20261023-161708-ad63a7"
+    }
+  ]
+}

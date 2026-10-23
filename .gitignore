@@ -1,0 +1,58 @@
+# ---------------------------------------------------------------------------
+# codegraph — .gitignore
+#
+# The repo is meant to contain source, tests, docs and generated reports only.
+# Everything heavy or machine-specific stays local.
+# ---------------------------------------------------------------------------
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+
+# --- Local model weights (multi-GB) ---
+models/
+ollama/
+*.gguf
+
+# --- Cloned test repositories (reproducible: see README) ---
+repos/
+
+# --- Index databases (rebuilt with `codegraph index`) ---
+.codegraph/
+*.db
+*.db-wal
+*.db-shm
+
+# --- Package manager / tool caches ---
+.uvcache/
+uv.lock
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Downloaded installers / scratch ---
+_setup/
+*.zip
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Local environment ---
+.env
+.env.*
